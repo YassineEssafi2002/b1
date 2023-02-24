@@ -1,33 +1,24 @@
-package com.example.demo;
-
-import javafx.application.Application;
-import javafx.application.Platform;
-import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.layout.GridPane;
-import javafx.stage.Stage;
-import java.util.HashSet;
 import java.util.Random;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
+import java.util.Scanner;
+import java.util.HashSet;
 
-
-public class Game extends Application {
+class Game {
     private static final int BOARD_SIZE = 10;
     private static final int NUM_SHIPS = 3;
-    private Label[][] boardLabels;
     private int[][] board;
     private int shipsRemaining;
     private HashSet<String> guesses;
-    @Override
-    public void start(Stage primaryStage) {
+
+
+
+    public Game() {
         this.board = new int[BOARD_SIZE][BOARD_SIZE];
         for (int i = 0; i < BOARD_SIZE; i++) {
             for (int j = 0; j < BOARD_SIZE; j++) {
                 this.board[i][j] = 0;
             }
-
         }
+
 
         Random random = new Random();
         int shipsPlaced = 0;
@@ -40,69 +31,68 @@ public class Game extends Application {
             }
         }
         this.shipsRemaining = NUM_SHIPS;
-        this.guesses = new HashSet<>();
+        this.guesses = new HashSet<String>();
+    }
 
-        GridPane grid = new GridPane();
-        this.boardLabels = new Label[BOARD_SIZE][BOARD_SIZE];
-        for (int row = 0; row < BOARD_SIZE; row++) {
-            for (int col = 0; col < BOARD_SIZE; col++) {
-                Label label = new Label(" ");
-                label.setMinSize(70, 70);
-                label.setMaxSize(70, 70);
-                label.setStyle("-fx-border-color: black; -fx-border-width: 1; -fx-background-color: red;");
-                final int x = col;
-                final int y = row;
-                label.setOnMouseClicked(event -> handleClick(x, y));
-                grid.add(label, col, row);
-                this.boardLabels[row][col] = label;
+    public void play() {
 
+        Scanner scanner = new Scanner(System.in);
+        while (this.shipsRemaining > 0) {
+            displayBoard();
+            System.out.print("Entrer un nombre entre 0 et 9 (x y): ");
+            int x = scanner.nextInt();
+            int y = scanner.nextInt();
+
+            while (x < 0 || x >= BOARD_SIZE || y < 0 || y >= BOARD_SIZE || this.guesses.contains(x + " " + y)) {
+                if (x < 0 || x >= BOARD_SIZE || y < 0 || y >= BOARD_SIZE) {
+                    System.out.println(" Erreur. Veuillez entrer une coordonnée valide entre 0 et 9 " + (BOARD_SIZE - 1));
+                }
+                else {
+                    System.out.println("Vous avez déjà deviné cette position. Veuillez entrer une nouvelle coordonnée.");
+                }
+                System.out.print("Entrer un nombre entre 0 et 9 (x y): ");
+                x = scanner.nextInt();
+                y = scanner.nextInt();
+            }
+
+            this.guesses.add(x + " " + y);
+
+            if (this.board[x][y] == 1) {
+                System.out.println("T as gagne felicitation!");
+                this.board[x][y] = 2;
+                this.shipsRemaining--;
+            } else {
+                System.out.println("Perdu!");
             }
         }
 
-        Scene scene = new Scene(grid, 692, 692);
-        primaryStage.setScene(scene);
-        primaryStage.setTitle("Battle Ship Game");
-        primaryStage.show();
-
-    }
-
-    private void handleClick(int x, int y) {
-        String guess = x + " " + y;
-        if (this.guesses.contains(guess)) {
-            Alert alert = new Alert(AlertType.WARNING);
-            alert.setTitle("Avertissement");
-            alert.setHeaderText("Déjà deviné");
-            alert.setContentText("Vous avez déjà deviné cette position. Veuillez sélectionner une nouvelle case.");
-            alert.showAndWait();
-            return;
-        }
-        this.guesses.add(guess);
-
-        if (this.board[y][x] == 1) {
-            this.board[y][x] = 2;
-            this.boardLabels[y][x].setStyle("-fx-background-color: white");
-            this.shipsRemaining--;
-            // Show "Congratulations, you hit a ship!" message
-            Alert alert = new Alert(AlertType.INFORMATION);
-            alert.setTitle("Félicitations");
-            alert.setHeaderText("Vous avez touché un navire!");
-            alert.setContentText("Félicitations! Vous avez touché un navire!");
-            alert.showAndWait();
-        } else {
-            this.boardLabels[y][x].setStyle("-fx-background-color: green");
-        }
-
-        if (this.shipsRemaining == 0) {
-            showWinDialog();
-        }
+        System.out.println("Tous les navires ont été coulés ! Vous gagnez!");
     }
 
 
-    private void showWinDialog() {
-        Alert alert = new Alert(AlertType.INFORMATION);
-        alert.setTitle("Félicitations");
-        alert.setHeaderText("Tous les navires ont été coulés !");
-        alert.setContentText("Vous gagnez!");
-        alert.showAndWait();
-        Platform.exit();
-    }}
+
+    public void displayBoard() {
+        System.out.println("  0|1|2|3|4|5|6|7|8|9|");
+        for (int row = 0; row < BOARD_SIZE; row++) {
+            System.out.print(row + "|");
+            for (int col = 0; col < BOARD_SIZE; col++) {
+                if (this.board[row][col] == 2) {
+                    System.out.print("X");
+                } else if (this.board[row][col] == 1) {
+                    System.out.print("O");
+                } else if (this.guesses.contains(row + " " + col)) {
+                    System.out.print("-");
+                } else {
+                    System.out.print(" ");
+                }
+                if (col != BOARD_SIZE - 1) {
+                    System.out.print("|");
+            }
+            }
+            System.out.println("|" + row);
+        }
+        System.out.println("  0|1|2|3|4|5|6|7|8|9|");
+    }
+
+}
+
